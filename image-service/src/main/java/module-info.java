@@ -1,4 +1,5 @@
 module com.udacity.catpoint.image {
+    exports com.udacity.catpoint.imageservice;
     requires software.amazon.awssdk.services.rekognition;
     requires software.amazon.awssdk.auth;
     requires software.amazon.awssdk.regions;
