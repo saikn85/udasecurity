@@ -78,7 +78,7 @@ public class AwsImageService implements ImageService {
         DetectLabelsRequest detectLabelsRequest = DetectLabelsRequest.builder().image(awsImage).minConfidence(confidenceThreshold).build();
         DetectLabelsResponse response = rekognitionClient.detectLabels(detectLabelsRequest);
         logLabelsForFun(response);
-        return response.labels().stream().filter(l -> l.name().toLowerCase().contains("cat")).findFirst().isPresent();
+        return response.labels().stream().anyMatch(l -> l.name().toLowerCase().contains("cat"));
     }
 
     private void logLabelsForFun(DetectLabelsResponse response) {
