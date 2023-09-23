@@ -1,8 +1,9 @@
 package com.udacity.catpoint.secservice.application;
 
+import com.udacity.catpoint.imageservice.FakeImageService;
+import com.udacity.catpoint.imageservice.ImageService;
 import com.udacity.catpoint.secservice.data.PretendDatabaseSecurityRepositoryImpl;
 import com.udacity.catpoint.secservice.data.SecurityRepository;
-import com.udacity.catpoint.imageservice.FakeImageService;
 import com.udacity.catpoint.secservice.service.SecurityService;
 import net.miginfocom.swing.MigLayout;
 
@@ -10,18 +11,17 @@ import javax.swing.*;
 
 /**
  * This is the primary JFrame for the application that contains all the top-level JPanels.
- *
  * We're not using any dependency injection framework, so this class also handles constructing
  * all our dependencies and providing them to other classes as necessary.
  */
 public class CatpointGui extends JFrame {
-    private SecurityRepository securityRepository = new PretendDatabaseSecurityRepositoryImpl();
-    private FakeImageService imageService = new FakeImageService();
-    private SecurityService securityService = new SecurityService(securityRepository, imageService);
-    private DisplayPanel displayPanel = new DisplayPanel(securityService);
-    private ControlPanel controlPanel = new ControlPanel(securityService);
-    private SensorPanel sensorPanel = new SensorPanel(securityService);
-    private ImagePanel imagePanel = new ImagePanel(securityService);
+    private final SecurityRepository securityRepository = new PretendDatabaseSecurityRepositoryImpl();
+    private final ImageService imageService = new FakeImageService();
+    private final SecurityService securityService = new SecurityService(securityRepository, imageService);
+    private final DisplayPanel displayPanel = new DisplayPanel(securityService);
+    private final ControlPanel controlPanel = new ControlPanel(securityService);
+    private final SensorPanel sensorPanel = new SensorPanel(securityService);
+    private final ImagePanel imagePanel = new ImagePanel(securityService);
 
     public CatpointGui() {
         setLocation(100, 100);

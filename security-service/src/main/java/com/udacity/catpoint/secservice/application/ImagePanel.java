@@ -12,18 +12,19 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-/** Panel containing the 'camera' output. Allows users to 'refresh' the camera
+/**
+ * Panel containing the 'camera' output. Allows users to 'refresh' the camera
  * by uploading their own picture, and 'scan' the picture, sending it for image analysis
  */
 public class ImagePanel extends JPanel implements StatusListener {
-    private SecurityService securityService;
+    private final SecurityService securityService;
+    private final JLabel cameraHeader;
+    private final JLabel cameraLabel;
 
-    private JLabel cameraHeader;
-    private JLabel cameraLabel;
     private BufferedImage currentCameraImage;
 
-    private int IMAGE_WIDTH = 300;
-    private int IMAGE_HEIGHT = 225;
+    private final int IMAGE_WIDTH = 300;
+    private final int IMAGE_HEIGHT = 225;
 
     public ImagePanel(SecurityService securityService) {
         super();
@@ -46,14 +47,14 @@ public class ImagePanel extends JPanel implements StatusListener {
             chooser.setCurrentDirectory(new File("."));
             chooser.setDialogTitle("Select Picture");
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            if(chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
                 return;
             }
             try {
                 currentCameraImage = ImageIO.read(chooser.getSelectedFile());
                 Image tmp = new ImageIcon(currentCameraImage).getImage();
                 cameraLabel.setIcon(new ImageIcon(tmp.getScaledInstance(IMAGE_WIDTH, IMAGE_HEIGHT, Image.SCALE_SMOOTH)));
-            } catch (IOException |NullPointerException ioe) {
+            } catch (IOException | NullPointerException ioe) {
                 JOptionPane.showMessageDialog(null, "Invalid image selected.");
             }
             repaint();
@@ -78,7 +79,7 @@ public class ImagePanel extends JPanel implements StatusListener {
 
     @Override
     public void catDetected(boolean catDetected) {
-        if(catDetected) {
+        if (catDetected) {
             cameraHeader.setText("DANGER - CAT DETECTED");
         } else {
             cameraHeader.setText("Camera Feed - No Cats Detected");

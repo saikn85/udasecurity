@@ -7,13 +7,18 @@ import java.util.Set;
  */
 public interface SecurityRepository {
     void addSensor(Sensor sensor);
+
     void removeSensor(Sensor sensor);
+
     void updateSensor(Sensor sensor);
-    void setAlarmStatus(AlarmStatus alarmStatus);
-    void setArmingStatus(ArmingStatus armingStatus);
+
     Set<Sensor> getSensors();
+
     AlarmStatus getAlarmStatus();
+
+    void setAlarmStatus(AlarmStatus alarmStatus);
+
     ArmingStatus getArmingStatus();
 
-
+    void setArmingStatus(ArmingStatus armingStatus);
 }

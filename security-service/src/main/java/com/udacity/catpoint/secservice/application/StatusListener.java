@@ -7,6 +7,8 @@ import com.udacity.catpoint.secservice.data.AlarmStatus;
  */
 public interface StatusListener {
     void notify(AlarmStatus status);
+
     void catDetected(boolean catDetected);
+
     void sensorStatusChanged();
 }

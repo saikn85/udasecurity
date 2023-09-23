@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
  */
 public class ControlPanel extends JPanel {
 
-    private SecurityService securityService;
-    private Map<ArmingStatus, JButton> buttonMap;
+    private final SecurityService securityService;
+    private final Map<ArmingStatus, JButton> buttonMap;
 
 
     public ControlPanel(SecurityService securityService) {
@@ -46,7 +46,5 @@ public class ControlPanel extends JPanel {
 
         ArmingStatus currentStatus = securityService.getArmingStatus();
         buttonMap.get(currentStatus).setBackground(currentStatus.getColor());
-
-
     }
 }

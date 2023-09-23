@@ -13,7 +13,7 @@ import javax.swing.*;
  */
 public class DisplayPanel extends JPanel implements StatusListener {
 
-    private JLabel currentStatusLabel;
+    private final JLabel currentStatusLabel;
 
     public DisplayPanel(SecurityService securityService) {
         super();
@@ -32,7 +32,6 @@ public class DisplayPanel extends JPanel implements StatusListener {
         add(panelLabel, "span 2, wrap");
         add(systemStatusLabel);
         add(currentStatusLabel, "wrap");
-
     }
 
     @Override

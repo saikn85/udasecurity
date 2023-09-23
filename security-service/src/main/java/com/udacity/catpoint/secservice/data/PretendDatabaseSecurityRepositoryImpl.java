@@ -13,19 +13,17 @@ import java.util.prefs.Preferences;
  * memory and writes it to user preferences between app loads. This implementation is
  * intentionally a little hard to use in unit tests, so watch out!
  */
-public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository{
-
-    private Set<Sensor> sensors;
-    private AlarmStatus alarmStatus;
-    private ArmingStatus armingStatus;
+public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository {
 
     //preference keys
     private static final String SENSORS = "SENSORS";
     private static final String ALARM_STATUS = "ALARM_STATUS";
     private static final String ARMING_STATUS = "ARMING_STATUS";
-
     private static final Preferences prefs = Preferences.userNodeForPackage(PretendDatabaseSecurityRepositoryImpl.class);
     private static final Gson gson = new Gson(); //used to serialize objects into JSON
+    private final Set<Sensor> sensors;
+    private AlarmStatus alarmStatus;
+    private ArmingStatus armingStatus;
 
     public PretendDatabaseSecurityRepositoryImpl() {
         //load system state from prefs, or else default
@@ -35,7 +33,7 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
         //we've serialized our sensor objects for storage, which should be a good warning sign that
         // this is likely an impractical solution for a real system
         String sensorString = prefs.get(SENSORS, null);
-        if(sensorString == null) {
+        if (sensorString == null) {
             sensors = new TreeSet<>();
         } else {
             Type type = new TypeToken<Set<Sensor>>() {
@@ -64,18 +62,6 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
     }
 
     @Override
-    public void setAlarmStatus(AlarmStatus alarmStatus) {
-        this.alarmStatus = alarmStatus;
-        prefs.put(ALARM_STATUS, this.alarmStatus.toString());
-    }
-
-    @Override
-    public void setArmingStatus(ArmingStatus armingStatus) {
-        this.armingStatus = armingStatus;
-        prefs.put(ARMING_STATUS, this.armingStatus.toString());
-    }
-
-    @Override
     public Set<Sensor> getSensors() {
         return sensors;
     }
@@ -86,7 +72,19 @@ public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository
     }
 
     @Override
+    public void setAlarmStatus(AlarmStatus alarmStatus) {
+        this.alarmStatus = alarmStatus;
+        prefs.put(ALARM_STATUS, this.alarmStatus.toString());
+    }
+
+    @Override
     public ArmingStatus getArmingStatus() {
         return armingStatus;
+    }
+
+    @Override
+    public void setArmingStatus(ArmingStatus armingStatus) {
+        this.armingStatus = armingStatus;
+        prefs.put(ARMING_STATUS, this.armingStatus.toString());
     }
 }
