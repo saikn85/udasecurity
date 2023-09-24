@@ -8,6 +8,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -187,7 +188,7 @@ public class SecurityServiceTests {
 
     @Test // TC 7
     @DisplayName("\uD83D\uDC08 + \uD83C\uDFE0 => \uD83D\uDE31!")
-    public void verifyThatWhenSystemIsArmedHome_and_CatAppears_then_IntimateHooman(){
+    public void verifyThatWhenSystemIsArmedHome_and_CatAppears_then_IntimateHooman() {
         // Arrange
         when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
         when(imageService.imageContainsCat(image, 50.0f)).thenReturn(true);
@@ -201,7 +202,7 @@ public class SecurityServiceTests {
 
     @Test // TC 8
     @DisplayName("No|Dead \uD83D\uDC08 + No Active Sensor  => Alarm Off!")
-    public void verifyThatWhenSystemIsArmedHome_and_CatAreDead_AlongWithNoActiveSenors_then_TurnOffAlarm(){
+    public void verifyThatWhenSystemIsArmedHome_and_CatAreDead_AlongWithNoActiveSenors_then_TurnOffAlarm() {
         // Arrange
         lenient().when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
         when(imageService.imageContainsCat(image, 50.0f)).thenReturn(false);
@@ -217,9 +218,9 @@ public class SecurityServiceTests {
         verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
-    @Test
+    @Test // TC 9
     @DisplayName("Disarmed => No Alarm")
-    public void verifyThatIfSystemIsDisarmed_then_ThereIsNoAlarm(){
+    public void verifyThatIfSystemIsDisarmed_then_ThereIsNoAlarm() {
         // Arrange & Act
         securityService.setArmingStatus(ArmingStatus.DISARMED);
 
@@ -227,5 +228,22 @@ public class SecurityServiceTests {
         verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
+    @ParameterizedTest // TC 10
+    @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
+    public void verifyThatSystemSenorsAreReset_when_ArmingStateChanges(ArmingStatus state) {
+        // Arrange
+        var listOfSensors = Set.of(
+                new Sensor("ABC", SensorType.DOOR),
+                new Sensor("BCD", SensorType.WINDOW),
+                new Sensor("EFG", SensorType.MOTION)
+        );
+        listOfSensors.forEach(sensor -> sensor.setActive(true));
+        when(securityRepository.getSensors()).thenReturn(listOfSensors);
 
+        // Act
+        securityService.setArmingStatus(state);
+
+        // Assert
+        securityService.getSensors().forEach(sensor -> Assertions.assertFalse(sensor.getActive()));
+    }
 }
