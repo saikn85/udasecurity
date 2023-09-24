@@ -18,7 +18,6 @@ import java.util.Set;
  * class you will be writing unit tests for.
  */
 public class SecurityService {
-
     private final ImageService imageService;
     private final SecurityRepository securityRepository;
     private final Set<StatusListener> statusListeners = new HashSet<>();
@@ -45,7 +44,7 @@ public class SecurityService {
      * the camera currently shows a cat.
      * @param cat True if a cat is detected, otherwise false.
      */
-    private void catDetected(Boolean cat) {
+    private void catDetected(boolean cat) {
         if(cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
             setAlarmStatus(AlarmStatus.ALARM);
         } else {

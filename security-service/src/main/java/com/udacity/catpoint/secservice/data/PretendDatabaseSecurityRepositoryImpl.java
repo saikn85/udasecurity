@@ -14,18 +14,20 @@ import java.util.prefs.Preferences;
  * intentionally a little hard to use in unit tests, so watch out!
  */
 public class PretendDatabaseSecurityRepositoryImpl implements SecurityRepository {
-
     //preference keys
     private static final String SENSORS = "SENSORS";
     private static final String ALARM_STATUS = "ALARM_STATUS";
     private static final String ARMING_STATUS = "ARMING_STATUS";
-    private static Preferences prefs = Preferences.userNodeForPackage(PretendDatabaseSecurityRepositoryImpl.class);
-    private static Gson gson = new Gson(); //used to serialize objects into JSON
+    private final Preferences prefs;
+    private final Gson gson;
     private final Set<Sensor> sensors;
     private AlarmStatus alarmStatus;
     private ArmingStatus armingStatus;
 
     public PretendDatabaseSecurityRepositoryImpl() {
+        gson = new Gson(); //used to serialize objects into JSON
+        prefs = Preferences.userNodeForPackage(PretendDatabaseSecurityRepositoryImpl.class);
+
         //load system state from prefs, or else default
         alarmStatus = AlarmStatus.valueOf(prefs.get(ALARM_STATUS, AlarmStatus.NO_ALARM.toString()));
         armingStatus = ArmingStatus.valueOf(prefs.get(ARMING_STATUS, ArmingStatus.DISARMED.toString()));

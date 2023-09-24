@@ -1,10 +1,11 @@
 package com.udacity.catpoint.secservice.service;
 
 import com.udacity.catpoint.imageservice.ImageService;
+import com.udacity.catpoint.secservice.application.StatusListener;
 import com.udacity.catpoint.secservice.data.*;
 import net.bytebuddy.utility.RandomString;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
+import org.checkerframework.checker.units.qual.A;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -12,6 +13,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
@@ -25,9 +28,12 @@ public class SecurityServiceTests {
     @Mock
     private SecurityRepository securityRepository;
 
+    @Mock
+    private StatusListener listener;
+
     private SecurityService securityService;
 
-    private static Stream<Arguments> getArmedSenors() {
+    private static Stream<Arguments> getArmedSenor() {
         return Stream.of(
                 Arguments.of(ArmingStatus.ARMED_AWAY, SensorType.DOOR),
                 Arguments.of(ArmingStatus.ARMED_AWAY, SensorType.MOTION),
@@ -35,6 +41,21 @@ public class SecurityServiceTests {
                 Arguments.of(ArmingStatus.ARMED_HOME, SensorType.DOOR),
                 Arguments.of(ArmingStatus.ARMED_HOME, SensorType.MOTION),
                 Arguments.of(ArmingStatus.ARMED_HOME, SensorType.WINDOW)
+        );
+    }
+
+    private static Stream<Arguments> getArmedSenors() {
+        return Stream.of(
+                Arguments.of(ArmingStatus.ARMED_AWAY, List.of(
+                        new Sensor("ABC", SensorType.DOOR),
+                        new Sensor("BCD", SensorType.WINDOW),
+                        new Sensor("EFG", SensorType.MOTION)
+                )),
+                Arguments.of(ArmingStatus.ARMED_HOME, List.of(
+                        new Sensor("ABC", SensorType.DOOR),
+                        new Sensor("BCD", SensorType.WINDOW),
+                        new Sensor("EFG", SensorType.MOTION)
+                ))
         );
     }
 
@@ -63,14 +84,14 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest
-    @DisplayName("Verify that System is in Pending State when Alarm is Armed and Sensor is Activated")
-    @MethodSource("getArmedSenors")
+    @DisplayName("Alarm Armed :: {0} + Senor :: {1} + Activate => Pending State")
+    @MethodSource("getArmedSenor")
     public void verifyThatSystemIsInPendingState_when_AlarmIsArmed_and_SensorIsActivated(
             ArmingStatus status, SensorType type) {
         // Arrange
-        when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM);
-        when(securityRepository.getArmingStatus()).thenReturn(status);
         var sensor = new Sensor(new RandomString().nextString(), type);
+        when(securityRepository.getArmingStatus()).thenReturn(status);
+        when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM);
 
         // Act
         securityService.changeSensorActivationStatus(sensor, true);
@@ -80,14 +101,15 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest
-    @DisplayName("Verify that Alarm is Turned On when System in Active Pending State is Notified by a Sensor")
+    @DisplayName("Alarm Armed :: {0} + Senor :: {1} + Activate + Pending State => Alarm On!")
     @MethodSource("getArmedSenors")
-    public void verifyThatAlarmIsTurnedOn_when_SystemInActivePendingStateIsNotifiedByASensor(
-            ArmingStatus status, SensorType type) {
+    public void verifyThatSystemIsAlarmed_when_SystemInActivePendingStateIsNotifiedByASensor(
+            ArmingStatus status, List<Sensor> sensors) {
         // Arrange
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
         when(securityRepository.getArmingStatus()).thenReturn(status);
-        var sensor = new Sensor(new RandomString().nextString(), type);
+        sensors.forEach(sensor -> securityService.addSensor(sensor));
+        var sensor = sensors.get(new Random().nextInt(3));
 
         // Act
         securityService.changeSensorActivationStatus(sensor, true);
@@ -97,9 +119,9 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest
-    @DisplayName("Verify that Alarm is Turned Off when System in Active Pending State has no Senors Enabled")
+    @DisplayName("Senor :: {0} + De-activate + Pending State => Alarm Off!")
     @MethodSource("getSenors")
-    public void verifyThatAlarmIsTurnedOff_when_SystemInActivePendingStateHasNoSenorsEnabled(SensorType type) {
+    public void verifyThatSystemIsNotAlarmed_when_SystemInActivePendingStateHasNoSenorsEnabled(SensorType type) {
         // Arrange
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
         var sensor = new Sensor(new RandomString().nextString(), type);
@@ -113,9 +135,9 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest
-    @DisplayName("Verify that Alarm is not Effected by a Change in Senor State")
+    @DisplayName("Senor :: {0} + Enable/Disabled :: {1} + Alarm On => Alarm On!")
     @MethodSource("getSenorsAndState")
-    public void verifyThatAlarmIsNotEffected_by_AChangeInSenorState(SensorType type, boolean state) {
+    public void verifyThatSystemAlarmIsUnaffected_by_AChangeInSenorState(SensorType type, boolean state) {
         // Arrange
         // UnnecessaryStubbingException
         lenient().when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
@@ -126,5 +148,25 @@ public class SecurityServiceTests {
 
         // Assert - Argument Matcher
         verify(securityRepository, never()).setAlarmStatus(any(AlarmStatus.class));
+        Assertions.assertEquals(securityRepository.getAlarmStatus(), AlarmStatus.ALARM);
+    }
+
+    @RepeatedTest(value = 5)
+    @DisplayName("")
+    public void verifyThatSystemIsAlarmed_when_ANewSenorIsActivated_and_SystemIsInActivePendingState() {
+        // Arrange
+        when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM, AlarmStatus.PENDING_ALARM);
+        when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+        var sensor1 = new Sensor(new RandomString().nextString(), SensorType.MOTION);
+        var sensor2 = new Sensor(new RandomString().nextString(), SensorType.DOOR);
+        securityService.addSensor(sensor1);
+        securityService.addSensor(sensor2);
+
+        // Act
+        securityService.changeSensorActivationStatus(sensor1, true);
+        securityService.changeSensorActivationStatus(sensor2, true);
+
+        // Assert
+        verify(securityRepository, atMost(2)).setAlarmStatus(AlarmStatus.ALARM);
     }
 }

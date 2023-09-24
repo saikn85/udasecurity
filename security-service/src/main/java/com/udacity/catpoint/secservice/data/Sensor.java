@@ -15,6 +15,14 @@ public class Sensor implements Comparable<Sensor> {
     private Boolean active;
     private SensorType sensorType;
 
+    // Gson : Unable to invoke no-args constructor for class
+    public Sensor() {
+        this.name = UUID.randomUUID().toString();
+        this.sensorType = SensorType.WINDOW;
+        this.sensorId = UUID.randomUUID();
+        this.active = Boolean.FALSE;
+    }
+
     public Sensor(String name, SensorType sensorType) {
         this.name = name;
         this.sensorType = sensorType;

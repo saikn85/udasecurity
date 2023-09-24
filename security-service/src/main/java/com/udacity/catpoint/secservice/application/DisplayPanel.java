@@ -12,7 +12,6 @@ import javax.swing.*;
  * interface so that it can be notified whenever the status changes.
  */
 public class DisplayPanel extends JPanel implements StatusListener {
-
     private final JLabel currentStatusLabel;
 
     public DisplayPanel(SecurityService securityService) {
