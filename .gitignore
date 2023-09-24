@@ -4,6 +4,13 @@
 # Log file
 *.log
 
+# List Files
+*.lst
+
+# pom and log4j properties
+pom*
+log4j*
+
 # BlueJ files
 *.ctxt
 
