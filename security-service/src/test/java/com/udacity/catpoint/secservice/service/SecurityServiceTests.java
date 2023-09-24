@@ -38,6 +38,25 @@ public class SecurityServiceTests {
         );
     }
 
+    private static Stream<Arguments> getSenors() {
+        return Stream.of(
+                Arguments.of(SensorType.DOOR),
+                Arguments.of(SensorType.MOTION),
+                Arguments.of(SensorType.WINDOW)
+        );
+    }
+
+    private static Stream<Arguments> getSenorsAndState() {
+        return Stream.of(
+                Arguments.of(SensorType.DOOR, Boolean.TRUE),
+                Arguments.of(SensorType.DOOR, Boolean.FALSE),
+                Arguments.of(SensorType.MOTION, Boolean.TRUE),
+                Arguments.of(SensorType.MOTION, Boolean.FALSE),
+                Arguments.of(SensorType.WINDOW, Boolean.TRUE),
+                Arguments.of(SensorType.WINDOW, Boolean.FALSE)
+        );
+    }
+
     @BeforeEach
     public void init() {
         securityService = new SecurityService(securityRepository, imageService);
@@ -79,9 +98,8 @@ public class SecurityServiceTests {
 
     @ParameterizedTest
     @DisplayName("Verify that Alarm is Turned Off when System in Active Pending State has no Senors Enabled")
-    @MethodSource("getArmedSenors")
-    public void verifyThatAlarmIsTurnedOff_when_SystemInActivePendingStateHasNoSenorsEnabled(
-            ArmingStatus status, SensorType type) {
+    @MethodSource("getSenors")
+    public void verifyThatAlarmIsTurnedOff_when_SystemInActivePendingStateHasNoSenorsEnabled(SensorType type) {
         // Arrange
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
         var sensor = new Sensor(new RandomString().nextString(), type);
@@ -92,5 +110,21 @@ public class SecurityServiceTests {
 
         // Assert
         verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
+    }
+
+    @ParameterizedTest
+    @DisplayName("Verify that Alarm is not Effected by a Change in Senor State")
+    @MethodSource("getSenorsAndState")
+    public void verifyThatAlarmIsNotEffected_by_AChangeInSenorState(SensorType type, boolean state) {
+        // Arrange
+        // UnnecessaryStubbingException
+        lenient().when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.ALARM);
+        var sensor = new Sensor(new RandomString().nextString(), type);
+
+        // Act
+        securityService.changeSensorActivationStatus(sensor, state);
+
+        // Assert - Argument Matcher
+        verify(securityRepository, never()).setAlarmStatus(any(AlarmStatus.class));
     }
 }
