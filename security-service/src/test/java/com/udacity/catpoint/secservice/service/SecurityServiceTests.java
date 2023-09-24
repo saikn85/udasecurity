@@ -86,7 +86,7 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest // TC 1
-    @DisplayName("Alarm Armed + Senor + Enabled => Pending State")
+    @DisplayName("Alarm Armed + Senor Enabled => Pending State")
     @MethodSource("getArmedSenor")
     public void verifyThatSystemIsInPendingState_when_AlarmIsArmed_and_SensorIsActivated(
             ArmingStatus status, SensorType type) {
@@ -103,14 +103,14 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest // TC 2
-    @DisplayName("Alarm Armed + Senor + Enabled + Pending State => Alarm On!")
+    @DisplayName("Alarm Armed + Senor Enabled + Pending State => Alarm On!")
     @MethodSource("getArmedSenors")
     public void verifyThatSystemIsAlarmed_when_SystemInActivePendingStateIsNotifiedByASensor(
             ArmingStatus status, List<Sensor> sensors) {
         // Arrange
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
         when(securityRepository.getArmingStatus()).thenReturn(status);
-        sensors.forEach(sensor -> securityService.addSensor(sensor));
+        sensors.forEach(sensor -> securityRepository.addSensor(sensor));
         var sensor = sensors.get(new Random().nextInt(3));
 
         // Act
@@ -121,7 +121,7 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest // TC 3
-    @DisplayName("Senor + De-activate + Pending State => Alarm Off!")
+    @DisplayName("Senor Disabled + Pending State => Alarm Off!")
     @MethodSource("getSenors")
     public void verifyThatSystemIsNotAlarmed_when_SystemInActivePendingStateHasNoSenorsEnabled(SensorType type) {
         // Arrange
@@ -137,7 +137,7 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest // TC 4
-    @DisplayName("Senor + Enable/Disabled + Alarm On => Alarm On!")
+    @DisplayName("Senor Enable/Disabled + Alarm On => Alarm On!")
     @MethodSource("getSenorsAndState")
     public void verifyThatSystemAlarmIsUnaffected_by_AChangeInSenorState(SensorType type, boolean state) {
         // Arrange
@@ -154,7 +154,7 @@ public class SecurityServiceTests {
     }
 
     @RepeatedTest(value = 5) // TC 5
-    @DisplayName("Active Senor + Pending State + New Active Senor => Alarm On!")
+    @DisplayName("Senor Enabled + Pending State + New Senor Enabled => Alarm On!")
     public void verifyThatSystemIsAlarmed_when_ANewSenorIsActivated_and_SystemIsInActivePendingState() {
         // Arrange
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM, AlarmStatus.PENDING_ALARM);
@@ -173,7 +173,7 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest // TC 6
-    @DisplayName("Senor + Disabled => No Change to Alarm!")
+    @DisplayName("Senor Disabled => No Change to Alarm!")
     @MethodSource("getSenors")
     public void verifyThatWhenSenorIsDisabled_Then_AlarmRemainsUnaffected(SensorType type) {
         // Arrange
@@ -245,5 +245,24 @@ public class SecurityServiceTests {
 
         // Assert
         securityService.getSensors().forEach(sensor -> Assertions.assertFalse(sensor.getActive()));
+    }
+
+    @Test // TC 11
+    public void verifyThatSystemWhenArmedHome_and_CatsAppear_NotifyHooman() {
+        // Arrange
+        when(imageService.imageContainsCat(image, 50.0f)).thenReturn(true);
+        var listOfSensors = Set.of(
+                new Sensor("ABC", SensorType.DOOR),
+                new Sensor("BCD", SensorType.WINDOW),
+                new Sensor("EFG", SensorType.MOTION)
+        );
+        when(securityRepository.getSensors()).thenReturn(listOfSensors);
+
+        // Act
+        securityService.processImage(image);
+        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
+
+        // Assert
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
     }
 }
