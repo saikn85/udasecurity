@@ -4,7 +4,6 @@ import com.udacity.catpoint.imageservice.ImageService;
 import com.udacity.catpoint.secservice.application.StatusListener;
 import com.udacity.catpoint.secservice.data.*;
 import net.bytebuddy.utility.RandomString;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
@@ -172,11 +172,10 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest // TC 6
-    @DisplayName("Senor + Disabled + Disarmed => Disarmed!")
+    @DisplayName("Senor + Disabled => No Change to Alarm!")
     @MethodSource("getSenors")
-    public void verifyThatSystemThatIsDisarmed_remains_Unchanged(SensorType type) {
+    public void verifyThatWhenSenorIsDisabled_Then_AlarmRemainsUnaffected(SensorType type) {
         // Arrange
-        when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.DISARMED);
         var sensor = new Sensor(new RandomString().nextString(), type);
 
         // Act
@@ -188,11 +187,45 @@ public class SecurityServiceTests {
 
     @Test // TC 7
     @DisplayName("\uD83D\uDC08 + \uD83C\uDFE0 => \uD83D\uDE31!")
-    public void verifyThatWhenSystemIsArmedHome_and_CatAppears_IntimateHooman(){
+    public void verifyThatWhenSystemIsArmedHome_and_CatAppears_then_IntimateHooman(){
+        // Arrange
         when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
         when(imageService.imageContainsCat(image, 50.0f)).thenReturn(true);
 
+        // Act
         securityService.processImage(image);
-        verify(securityRepository).setAlarmStatus(AlarmStatus.ALARM);
+
+        // Assert
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
     }
+
+    @Test // TC 8
+    @DisplayName("No|Dead \uD83D\uDC08 + No Active Sensor  => Alarm Off!")
+    public void verifyThatWhenSystemIsArmedHome_and_CatAreDead_AlongWithNoActiveSenors_then_TurnOffAlarm(){
+        // Arrange
+        lenient().when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+        when(imageService.imageContainsCat(image, 50.0f)).thenReturn(false);
+        when(securityRepository.getSensors()).thenReturn(Set.of(
+                new Sensor("ABC", SensorType.DOOR),
+                new Sensor("BCD", SensorType.WINDOW),
+                new Sensor("EFG", SensorType.MOTION)));
+
+        // Act
+        securityService.processImage(image);
+
+        // Assert
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
+    }
+
+    @Test
+    @DisplayName("Disarmed => No Alarm")
+    public void verifyThatIfSystemIsDisarmed_then_ThereIsNoAlarm(){
+        // Arrange & Act
+        securityService.setArmingStatus(ArmingStatus.DISARMED);
+
+        // Verify
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
+    }
+
+
 }

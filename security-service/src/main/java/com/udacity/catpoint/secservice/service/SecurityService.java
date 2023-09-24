@@ -14,7 +14,7 @@ import java.util.Set;
 /**
  * Service that receives information about changes to the security system. Responsible for
  * forwarding updates to the repository and making any decisions about changing the system state.
-  * This is the class that should contain most of the business logic for our system, and it is the
+ * This is the class that should contain most of the business logic for our system, and it is the
  * class you will be writing unit tests for.
  */
 public class SecurityService {
@@ -28,27 +28,17 @@ public class SecurityService {
     }
 
     /**
-     * Sets the current arming status for the system. Changing the arming status
-     * may update both the alarm status.
-     * @param armingStatus
-     */
-    public void setArmingStatus(ArmingStatus armingStatus) {
-        if(armingStatus == ArmingStatus.DISARMED) {
-            setAlarmStatus(AlarmStatus.NO_ALARM);
-        }
-        securityRepository.setArmingStatus(armingStatus);
-    }
-
-    /**
      * Internal method that handles alarm status changes based on whether
      * the camera currently shows a cat.
+     *
      * @param cat True if a cat is detected, otherwise false.
      */
     private void catDetected(boolean cat) {
-        if(cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
+        if (cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
             setAlarmStatus(AlarmStatus.ALARM);
         } else {
-            setAlarmStatus(AlarmStatus.NO_ALARM);
+            long activeSenors = this.getSensors().stream().filter(Sensor::getActive).count();
+            if (activeSenors <= 0) setAlarmStatus(AlarmStatus.NO_ALARM);
         }
 
         statusListeners.forEach(sl -> sl.catDetected(cat));
@@ -56,6 +46,7 @@ public class SecurityService {
 
     /**
      * Register the StatusListener for alarm system updates from within the SecurityService.
+     *
      * @param statusListener
      */
     public void addStatusListener(StatusListener statusListener) {
@@ -67,19 +58,10 @@ public class SecurityService {
     }
 
     /**
-     * Change the alarm status of the system and notify all listeners.
-     * @param status
-     */
-    public void setAlarmStatus(AlarmStatus status) {
-        securityRepository.setAlarmStatus(status);
-        statusListeners.forEach(sl -> sl.notify(status));
-    }
-
-    /**
      * Internal method for updating the alarm status when a sensor has been activated.
      */
     private void handleSensorActivated() {
-        switch(securityRepository.getAlarmStatus()) {
+        switch (this.getAlarmStatus()) {
             case NO_ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.ALARM);
         }
@@ -89,7 +71,7 @@ public class SecurityService {
      * Internal method for updating the alarm status when a sensor has been deactivated
      */
     private void handleSensorDeactivated() {
-        switch(securityRepository.getAlarmStatus()) {
+        switch (this.getAlarmStatus()) {
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
         }
@@ -97,12 +79,13 @@ public class SecurityService {
 
     /**
      * Change the activation status for the specified sensor and update alarm status if necessary.
+     *
      * @param sensor
      * @param active
      */
     public void changeSensorActivationStatus(Sensor sensor, Boolean active) {
-        if(securityRepository.getArmingStatus() != ArmingStatus.DISARMED) {
-            if(!sensor.getActive() && active) {
+        if (this.getArmingStatus() != ArmingStatus.DISARMED) {
+            if (!sensor.getActive() && active) {
                 handleSensorActivated();
             }
 
@@ -117,6 +100,7 @@ public class SecurityService {
     /**
      * Send an image to the SecurityService for processing. The securityService will use its provided
      * ImageService to analyze the image for cats and update the alarm status accordingly.
+     *
      * @param currentCameraImage
      */
     public void processImage(BufferedImage currentCameraImage) {
@@ -125,6 +109,16 @@ public class SecurityService {
 
     public AlarmStatus getAlarmStatus() {
         return securityRepository.getAlarmStatus();
+    }
+
+    /**
+     * Change the alarm status of the system and notify all listeners.
+     *
+     * @param status
+     */
+    public void setAlarmStatus(AlarmStatus status) {
+        securityRepository.setAlarmStatus(status);
+        statusListeners.forEach(sl -> sl.notify(status));
     }
 
     public Set<Sensor> getSensors() {
@@ -141,5 +135,18 @@ public class SecurityService {
 
     public ArmingStatus getArmingStatus() {
         return securityRepository.getArmingStatus();
+    }
+
+    /**
+     * Sets the current arming status for the system. Changing the arming status
+     * may update both the alarm status.
+     *
+     * @param armingStatus
+     */
+    public void setArmingStatus(ArmingStatus armingStatus) {
+        if (armingStatus == ArmingStatus.DISARMED) {
+            setAlarmStatus(AlarmStatus.NO_ALARM);
+        }
+        securityRepository.setArmingStatus(armingStatus);
     }
 }
