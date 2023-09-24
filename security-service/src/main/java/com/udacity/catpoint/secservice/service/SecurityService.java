@@ -10,7 +10,6 @@ import com.udacity.catpoint.secservice.data.Sensor;
 import java.awt.image.BufferedImage;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Service that receives information about changes to the security system. Responsible for
@@ -65,13 +64,15 @@ public class SecurityService {
      * Internal method for updating the alarm status when a sensor has been activated.
      */
     private void handleSensorActivated() {
-        if (this.getArmingStatus() != ArmingStatus.DISARMED || this.getAlarmStatus() == AlarmStatus.ALARM) {
+        if (this.getArmingStatus() == ArmingStatus.DISARMED || this.getAlarmStatus() == AlarmStatus.ALARM) {
             return;
         }
 
         switch (this.getAlarmStatus()) {
             case NO_ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.ALARM);
+            default -> {
+            }
         }
     }
 
@@ -82,6 +83,8 @@ public class SecurityService {
         switch (this.getAlarmStatus()) {
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
+            default -> {
+            }
         }
     }
 
@@ -96,9 +99,6 @@ public class SecurityService {
             handleSensorActivated();
         } else if (sensor.getActive() && !active) {
             handleSensorDeactivated();
-            return;
-        } else if (sensor.getActive() && active && this.getAlarmStatus() == AlarmStatus.PENDING_ALARM) {
-            setAlarmStatus(AlarmStatus.ALARM);
         }
 
         sensor.setActive(active);
@@ -106,7 +106,7 @@ public class SecurityService {
     }
 
     /**
-     * Send an image to the SecurityService for processing. The securityService will use its provided
+     * Send an image to the SecurityService for processing. The securityService will use it's provided
      * ImageService to analyze the image for cats and update the alarm status accordingly.
      *
      * @param currentCameraImage
@@ -156,12 +156,9 @@ public class SecurityService {
             setAlarmStatus(AlarmStatus.NO_ALARM);
         } else {
             if (this.doWeHaveStupidCats) setAlarmStatus(AlarmStatus.ALARM);
-
-            // Thread Safe Access to Ordered Senors
-            var allSensors = new ConcurrentSkipListSet<>(getSensors());
-            allSensors.forEach(s -> changeSensorActivationStatus(s, false));
+            this.getSensors().forEach(s -> s.setActive(false));
         }
         securityRepository.setArmingStatus(armingStatus);
-        statusListeners.forEach(sl -> sl.sensorStatusChanged());
+        statusListeners.forEach(StatusListener::sensorStatusChanged);
     }
 }

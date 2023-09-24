@@ -22,8 +22,8 @@ public class ImagePanel extends JPanel implements StatusListener {
 
     private BufferedImage currentCameraImage;
 
-    private final int IMAGE_WIDTH = 300;
-    private final int IMAGE_HEIGHT = 225;
+    private static final int IMAGE_WIDTH = 300;
+    private static final int IMAGE_HEIGHT = 225;
 
     public ImagePanel(SecurityService securityService) {
         super();
@@ -56,7 +56,9 @@ public class ImagePanel extends JPanel implements StatusListener {
                         IMAGE_WIDTH,
                         IMAGE_HEIGHT,
                         Image.SCALE_SMOOTH)));
-            } catch (IOException | NullPointerException ioe) {
+            } catch (IOException ioe) {
+                JOptionPane.showMessageDialog(null, "Invalid image selected.");
+            } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, "Invalid image selected.");
             }
             repaint();
@@ -64,9 +66,7 @@ public class ImagePanel extends JPanel implements StatusListener {
 
         //button that sends the image to the image service
         JButton scanPictureButton = new JButton("Scan Picture");
-        scanPictureButton.addActionListener(e -> {
-            securityService.processImage(currentCameraImage);
-        });
+        scanPictureButton.addActionListener(e -> securityService.processImage(currentCameraImage));
 
         add(cameraHeader, "span 3, wrap");
         add(cameraLabel, "span 3, wrap");

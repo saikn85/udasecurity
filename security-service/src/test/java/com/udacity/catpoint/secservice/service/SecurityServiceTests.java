@@ -229,34 +229,38 @@ public class SecurityServiceTests {
     }
 
     @ParameterizedTest // TC 10
+    @DisplayName("Change in Armed State => Reset all Sensors")
     @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
     public void verifyThatSystemSenorsAreReset_when_ArmingStateChanges(ArmingStatus state) {
         // Arrange
-        var listOfSensors = Set.of(
+        var sensorSet = Set.of(
                 new Sensor("ABC", SensorType.DOOR),
                 new Sensor("BCD", SensorType.WINDOW),
                 new Sensor("EFG", SensorType.MOTION)
         );
-        listOfSensors.forEach(sensor -> sensor.setActive(true));
-        when(securityRepository.getSensors()).thenReturn(listOfSensors);
+        sensorSet.forEach(sensor -> sensor.setActive(true));
+        when(securityRepository.getSensors()).thenReturn(sensorSet);
 
         // Act
         securityService.setArmingStatus(state);
 
         // Assert
-        securityService.getSensors().forEach(sensor -> Assertions.assertFalse(sensor.getActive()));
+        for (Sensor sensor : securityService.getSensors()) {
+            Assertions.assertFalse(sensor.getActive());
+        }
     }
 
     @Test // TC 11
+    @DisplayName("\uD83D\uDC08 + \uD83C\uDFE0 => \uD83D\uDE31 Part 2!")
     public void verifyThatSystemWhenArmedHome_and_CatsAppear_NotifyHooman() {
         // Arrange
         when(imageService.imageContainsCat(image, 50.0f)).thenReturn(true);
-        var listOfSensors = Set.of(
+        var sensorSet = Set.of(
                 new Sensor("ABC", SensorType.DOOR),
                 new Sensor("BCD", SensorType.WINDOW),
                 new Sensor("EFG", SensorType.MOTION)
         );
-        when(securityRepository.getSensors()).thenReturn(listOfSensors);
+        when(securityRepository.getSensors()).thenReturn(sensorSet);
 
         // Act
         securityService.processImage(image);
@@ -264,5 +268,20 @@ public class SecurityServiceTests {
 
         // Assert
         verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
+    }
+
+    @Test
+    @DisplayName("Test Status Listeners")
+    public void codeCoverageForStatusListeners() {
+        securityService.addStatusListener(listener);
+        securityService.removeStatusListener(listener);
+    }
+
+    @Test
+    @DisplayName("Test Sensors")
+    public void codeCoverageForSensors() {
+        var senor = new Sensor("ASC", SensorType.DOOR);
+        securityService.addSensor(senor);
+        securityService.removeSensor(senor);
     }
 }

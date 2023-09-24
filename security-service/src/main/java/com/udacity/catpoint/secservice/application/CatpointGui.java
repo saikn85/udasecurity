@@ -16,8 +16,8 @@ import javax.swing.*;
  */
 public class CatpointGui extends JFrame {
     private final SecurityRepository securityRepository = new PretendDatabaseSecurityRepositoryImpl();
-    private final ImageService imageService = new FakeImageService();
-    private final SecurityService securityService = new SecurityService(securityRepository, imageService);
+    private transient ImageService imageService = new FakeImageService();
+    private transient SecurityService securityService = new SecurityService(securityRepository, imageService);
     private final DisplayPanel displayPanel = new DisplayPanel(securityService);
     private final ControlPanel controlPanel = new ControlPanel(securityService);
     private final SensorPanel sensorPanel = new SensorPanel(securityService);
