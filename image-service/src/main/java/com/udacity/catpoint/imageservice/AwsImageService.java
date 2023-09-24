@@ -29,22 +29,21 @@ import java.util.stream.Collectors;
  * 4. Next to Permissions. Select 'Attach existing policies directly' and attack 'AmazonRekognitionFullAccess'
  * 5. Next through the remaining screens. Copy the 'Access key ID' and 'Secret access key' for this user.
  * 6. Create a config.properties file in the src/main/resources dir containing the keys referenced in this class
- *      aws.id=[your access key id]
- *      aws.secret=[your Secret access key]
- *      aws.region=[an aws region of choice. For example: us-east-2]
+ * aws.id=[your access key id]
+ * aws.secret=[your Secret access key]
+ * aws.region=[an aws region of choice. For example: us-east-2]
  */
 public class AwsImageService implements ImageService {
 
-    private final Logger log = LoggerFactory.getLogger(AwsImageService.class);
-
     //aws recommendation is to maintain only a single instance of client objects
     private static RekognitionClient rekognitionClient;
+    private final Logger log = LoggerFactory.getLogger(AwsImageService.class);
 
     public AwsImageService() {
         Properties props = new Properties();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("config.properties")) {
             props.load(is);
-        } catch (IOException ioe ) {
+        } catch (IOException ioe) {
             log.error("Unable to initialize AWS Rekognition, no properties file found", ioe);
             return;
         }
@@ -62,7 +61,8 @@ public class AwsImageService implements ImageService {
 
     /**
      * Returns true if the provided image contains a cat.
-     * @param image Image to scan
+     *
+     * @param image               Image to scan
      * @param confidenceThreshold Minimum threshold to consider for cat. For example, 90.0f would require 90% confidence minimum
      */
     @Override
@@ -75,7 +75,10 @@ public class AwsImageService implements ImageService {
             log.error("Error building image byte array", ioe);
             return false;
         }
-        DetectLabelsRequest detectLabelsRequest = DetectLabelsRequest.builder().image(awsImage).minConfidence(confidenceThreshold).build();
+        DetectLabelsRequest detectLabelsRequest = DetectLabelsRequest.builder()
+                .image(awsImage)
+                .minConfidence(confidenceThreshold)
+                .build();
         DetectLabelsResponse response = rekognitionClient.detectLabels(detectLabelsRequest);
         logLabelsForFun(response);
         return response.labels().stream().anyMatch(l -> l.name().toLowerCase().contains("cat"));

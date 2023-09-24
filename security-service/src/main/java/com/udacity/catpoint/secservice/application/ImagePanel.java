@@ -50,10 +50,14 @@ public class ImagePanel extends JPanel implements StatusListener {
             if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
                 return;
             }
+
             try {
                 currentCameraImage = ImageIO.read(chooser.getSelectedFile());
                 Image tmp = new ImageIcon(currentCameraImage).getImage();
-                cameraLabel.setIcon(new ImageIcon(tmp.getScaledInstance(IMAGE_WIDTH, IMAGE_HEIGHT, Image.SCALE_SMOOTH)));
+                cameraLabel.setIcon(new ImageIcon(tmp.getScaledInstance(
+                        IMAGE_WIDTH,
+                        IMAGE_HEIGHT,
+                        Image.SCALE_SMOOTH)));
             } catch (IOException | NullPointerException ioe) {
                 JOptionPane.showMessageDialog(null, "Invalid image selected.");
             }

@@ -6,7 +6,6 @@ import com.udacity.catpoint.secservice.data.AlarmStatus;
 import com.udacity.catpoint.secservice.data.ArmingStatus;
 import com.udacity.catpoint.secservice.data.SecurityRepository;
 import com.udacity.catpoint.secservice.data.Sensor;
-import com.udacity.catpoint.imageservice.FakeImageService;
 
 import java.awt.image.BufferedImage;
 import java.util.HashSet;
@@ -15,8 +14,7 @@ import java.util.Set;
 /**
  * Service that receives information about changes to the security system. Responsible for
  * forwarding updates to the repository and making any decisions about changing the system state.
- *
- * This is the class that should contain most of the business logic for our system, and it is the
+  * This is the class that should contain most of the business logic for our system, and it is the
  * class you will be writing unit tests for.
  */
 public class SecurityService {
