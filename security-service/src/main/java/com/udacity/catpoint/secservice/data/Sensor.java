@@ -47,10 +47,6 @@ public class Sensor implements Comparable<Sensor> {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Boolean getActive() {
         return active;
     }
@@ -63,25 +59,12 @@ public class Sensor implements Comparable<Sensor> {
         return sensorType;
     }
 
-    public void setSensorType(SensorType sensorType) {
-        this.sensorType = sensorType;
-    }
-
-    public UUID getSensorId() {
-        return sensorId;
-    }
-
-    public void setSensorId(UUID sensorId) {
-        this.sensorId = sensorId;
-    }
-
     @Override
     public int compareTo(Sensor o) {
-        int result = ComparisonChain.start()
+        return ComparisonChain.start()
                 .compare(this.name, o.name)
                 .compare(this.sensorType.toString(), o.sensorType.toString())
                 .compare(this.sensorId, o.sensorId)
                 .result();
-        return result;
     }
 }

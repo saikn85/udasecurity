@@ -51,7 +51,7 @@ public class SecurityService {
     /**
      * Register the StatusListener for alarm system updates from within the SecurityService.
      *
-     * @param statusListener
+     * @param statusListener - Status Listener
      */
     public void addStatusListener(StatusListener statusListener) {
         statusListeners.add(statusListener);
@@ -94,8 +94,8 @@ public class SecurityService {
     /**
      * Change the activation status for the specified sensor and update alarm status if necessary.
      *
-     * @param sensor
-     * @param active
+     * @param sensor - Current Sensor
+     * @param active - Current Sensor's State
      */
     public void changeSensorActivationStatus(Sensor sensor, Boolean active) {
         if (!sensor.getActive() && active) {
@@ -112,7 +112,7 @@ public class SecurityService {
      * Send an image to the SecurityService for processing. The securityService will use it's provided
      * ImageService to analyze the image for cats and update the alarm status accordingly.
      *
-     * @param currentCameraImage
+     * @param currentCameraImage - Current Image that is/will be tested for Cats
      */
     public void processImage(BufferedImage currentCameraImage) {
         catDetected(imageService.imageContainsCat(currentCameraImage, 50.0f));
@@ -125,7 +125,7 @@ public class SecurityService {
     /**
      * Change the alarm status of the system and notify all listeners.
      *
-     * @param status
+     * @param status - Alarm Status
      */
     public void setAlarmStatus(AlarmStatus status) {
         securityRepository.setAlarmStatus(status);
@@ -152,7 +152,7 @@ public class SecurityService {
      * Sets the current arming status for the system. Changing the arming status
      * may update both the alarm status.
      *
-     * @param armingStatus
+     * @param armingStatus - Arming Status
      */
     public void setArmingStatus(ArmingStatus armingStatus) {
         if (armingStatus == ArmingStatus.DISARMED)
