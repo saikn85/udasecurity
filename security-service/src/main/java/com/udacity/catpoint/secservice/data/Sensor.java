@@ -77,10 +77,11 @@ public class Sensor implements Comparable<Sensor> {
 
     @Override
     public int compareTo(Sensor o) {
-        ComparisonChain start = ComparisonChain.start();
-        start.compare(this.name, o.name);
-        start.compare(this.sensorType.toString(), o.sensorType.toString());
-        start.compare(this.sensorId, o.sensorId);
-        return start.result();
+        int result = ComparisonChain.start()
+                .compare(this.name, o.name)
+                .compare(this.sensorType.toString(), o.sensorType.toString())
+                .compare(this.sensorId, o.sensorId)
+                .result();
+        return result;
     }
 }
