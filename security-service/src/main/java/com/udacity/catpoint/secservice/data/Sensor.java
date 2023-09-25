@@ -10,10 +10,10 @@ import java.util.UUID;
  * Sensor POJO. Needs to know how to sort itself for display purposes.
  */
 public class Sensor implements Comparable<Sensor> {
-    private UUID sensorId;
-    private String name;
-    private Boolean active;
-    private SensorType sensorType;
+    private final UUID sensorId;
+    private final String name;
+    private boolean active;
+    private final SensorType sensorType;
 
     // Gson : Unable to invoke no-args constructor for class
     public Sensor() {
