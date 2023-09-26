@@ -8,8 +8,8 @@
 *.lst
 
 # pom and log4j properties
-pom*
-log4j*
+*.properties
+target*
 
 # BlueJ files
 *.ctxt
